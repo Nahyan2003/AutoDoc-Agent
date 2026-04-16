@@ -46,8 +46,9 @@ def ask_ai(code_content):
     return completion.choices[0].message.content
 
 def update_readme(summary):
-    with open("README.md", "a") as f:
-        f.write(f"\n\n## AutoDoc Update (Groq)\n{summary}")
+    # Adding encoding="utf-8" ensures it works on Linux servers (GitHub)
+    with open("README.md", "a", encoding="utf-8") as f:
+        f.write(f"\n\n## AutoDoc Update (Groq)\n{summary}\n")
     print("README.md updated successfully!")
 
 # --- THE UPDATED MASTER PLAN ---
