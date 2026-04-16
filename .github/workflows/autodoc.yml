@@ -1,0 +1,34 @@
+name: AutoDoc Agent Run
+
+on:
+  push:
+    branches: [ main ]  # This tells it to run every time you "push" code
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install groq python-dotenv
+
+      - name: Run AutoDoc Agent
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python app.py
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "AutoDoc-Bot"
+          git add README.md .code_hash
+          git commit -m "AI Update: README documentation" || echo "No changes to commit"
+          git push
