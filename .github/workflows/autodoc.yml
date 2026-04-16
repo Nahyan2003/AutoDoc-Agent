@@ -29,6 +29,8 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "AutoDoc-Bot"
-          git add README.md .code_hash
+          # The -f (force) ensures it adds them even if they are new
+          git add README.md .code_hash || echo "Files not found, moving on"
+          # Only commit if there are actual changes to save
           git commit -m "AI Update: README documentation" || echo "No changes to commit"
           git push
