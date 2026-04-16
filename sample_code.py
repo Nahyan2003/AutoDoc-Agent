@@ -1,4 +1,2 @@
-def get_weather_advice(temperature):
-    if temperature > 30:
-        return "It is hot in Dubai, stay hydrated!"
-    return "The weather is pleasant."
+def convert_celsius_to_fahrenheit(celsius):
+    return (celsius * 9/5) + 32
