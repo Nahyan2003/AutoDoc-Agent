@@ -1,3 +1,4 @@
-def calculate_bmi(weight_kg, height_m):
-    """Calculates the Body Mass Index."""
-    return weight_kg / (height_m ** 2)
+def get_weather_advice(temperature):
+    if temperature > 30:
+        return "It is hot in Dubai, stay hydrated!"
+    return "The weather is pleasant."
