@@ -1,5 +1,5 @@
 import os
-import hashlib  # Used to create the "fingerprint"
+import hashlib
 from dotenv import load_dotenv
 from groq import Groq
 
@@ -7,28 +7,29 @@ from groq import Groq
 load_dotenv()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-# --- NEW: MEMORY FUNCTIONS ---
 def get_code_hash(content):
     """Creates a unique fingerprint of the code text."""
     return hashlib.md5(content.encode()).hexdigest()
 
 def has_code_changed(new_content):
-    """Checks if the code is different from the last time."""
-    hash_file = ".code_hash" # A tiny file to store the fingerprint
+    """Checks if the code is different from the last time without saving it yet."""
+    hash_file = ".code_hash"
     new_hash = get_code_hash(new_content)
     
-    # Check if we have a saved fingerprint
     if os.path.exists(hash_file):
         with open(hash_file, "r") as f:
-            old_hash = f.read()
+            old_hash = f.read().strip()
         if old_hash == new_hash:
-            return False  # No change!
-            
-    # Save the new fingerprint for next time
+            return False 
+    return True
+
+def save_hash(new_content):
+    """Saves the fingerprint ONLY after a successful update."""
+    hash_file = ".code_hash"
+    new_hash = get_code_hash(new_content)
     with open(hash_file, "w") as f:
         f.write(new_hash)
-    return True  # Yes, it changed!
-# ------------------------------
+    print("New hash saved to memory.")
 
 def read_code():
     with open("sample_code.py", "r") as f:
@@ -46,20 +47,21 @@ def ask_ai(code_content):
     return completion.choices[0].message.content
 
 def update_readme(summary):
-    # Adding encoding="utf-8" ensures it works on Linux servers (GitHub)
+    # 'a' means append. Ensure encoding is utf-8
     with open("README.md", "a", encoding="utf-8") as f:
         f.write(f"\n\n## AutoDoc Update (Groq)\n{summary}\n")
     print("README.md updated successfully!")
 
-# --- THE UPDATED MASTER PLAN ---
+# --- THE MASTER PLAN ---
 if __name__ == "__main__":
     try:
         content = read_code()
         
-        # Check if the code actually changed before calling the AI
         if has_code_changed(content):
             ai_msg = ask_ai(content)
             update_readme(ai_msg)
+            # ONLY save the hash if we successfully reached this point
+            save_hash(content)
         else:
             print("No changes detected. Skipping AI update.")
             
