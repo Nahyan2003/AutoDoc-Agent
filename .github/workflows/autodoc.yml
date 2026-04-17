@@ -1,8 +1,9 @@
-name: AutoDoc Agent Run
+name: AutoDoc Agent
+on: [push]
 
-on:
-  push:
-    branches: [ main ]  # This tells it to run every time you "push" code
+# This is the "Key" that allows the bot to edit your README
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -12,13 +13,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.9'
 
       - name: Install dependencies
-        run: |
-          python -m pip install groq python-dotenv
+        run: pip install groq python-dotenv
 
       - name: Run AutoDoc Agent
         env:
@@ -29,8 +29,8 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "AutoDoc-Bot"
-          # The -f (force) ensures it adds them even if they are new
-          git add README.md .code_hash || echo "Files not found, moving on"
-          # Only commit if there are actual changes to save
-          git commit -m "AI Update: README documentation" || echo "No changes to commit"
-          git push
+          # -f forces the add in case .gitignore is being stubborn
+          git add -f README.md .code_hash || echo "No files to add"
+          # Only commit if there are actual changes
+          git commit -m "AI Update: Automated Documentation" || echo "Nothing to commit"
+          git push origin main

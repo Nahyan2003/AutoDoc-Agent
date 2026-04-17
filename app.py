@@ -1,5 +1,6 @@
 import os
 import hashlib
+import datetime
 from dotenv import load_dotenv
 from groq import Groq
 
@@ -12,7 +13,7 @@ def get_code_hash(content):
     return hashlib.md5(content.encode()).hexdigest()
 
 def has_code_changed(new_content):
-    """Checks if the code is different from the last time without saving it yet."""
+    """Checks if code changed without saving the hash yet."""
     hash_file = ".code_hash"
     new_hash = get_code_hash(new_content)
     
@@ -24,46 +25,44 @@ def has_code_changed(new_content):
     return True
 
 def save_hash(new_content):
-    """Saves the fingerprint ONLY after a successful update."""
+    """Saves memory only after a successful update."""
     hash_file = ".code_hash"
     new_hash = get_code_hash(new_content)
     with open(hash_file, "w") as f:
         f.write(new_hash)
-    print("New hash saved to memory.")
+    print("DEBUG: Hash saved to memory.")
 
 def read_code():
     with open("sample_code.py", "r") as f:
         return f.read()
 
 def ask_ai(code_content):
-    print("AutoDoc Agent is thinking (using Groq)...")
+    print("AutoDoc Agent is thinking...")
     completion = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
-            {"role": "system", "content": "You are a helpful assistant. Summarize code in 1 short sentence."},
+            {"role": "system", "content": "You are a technical writer. Summarize this code in one short, clear sentence."},
             {"role": "user", "content": code_content}
         ]
     )
     return completion.choices[0].message.content
 
 def update_readme(summary):
-    # 'a' means append. Ensure encoding is utf-8
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open("README.md", "a", encoding="utf-8") as f:
-        f.write(f"\n\n## AutoDoc Update (Groq)\n{summary}\n")
-    print("README.md updated successfully!")
+        f.write(f"\n\n### AI AutoDoc Update ({timestamp})\n> {summary}\n")
+    print(f"DEBUG: README.md updated successfully at {timestamp}!")
 
-# --- THE MASTER PLAN ---
 if __name__ == "__main__":
     try:
-        content = read_code()
+        code_content = read_code()
         
-        if has_code_changed(content):
-            ai_msg = ask_ai(content)
-            update_readme(ai_msg)
-            # ONLY save the hash if we successfully reached this point
-            save_hash(content)
+        if has_code_changed(code_content):
+            ai_summary = ask_ai(code_content)
+            update_readme(ai_summary)
+            save_hash(code_content)
         else:
-            print("No changes detected. Skipping AI update.")
+            print("No changes detected in sample_code.py. Skipping update.")
             
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"CRITICAL ERROR: {e}")
